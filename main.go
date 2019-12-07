@@ -11,9 +11,15 @@ import (
 const name = "mtimedir"
 
 func main() {
-	if _, err := run("."); err != nil {
-		fmt.Fprintf(os.Stderr, "%s: %s\n", name, err)
-		os.Exit(1)
+	args := os.Args[1:]
+	if len(args) == 0 {
+		args = []string{"."}
+	}
+	for _, arg := range args {
+		if _, err := run(arg); err != nil {
+			fmt.Fprintf(os.Stderr, "%s: %s\n", name, err)
+			os.Exit(1)
+		}
 	}
 }
 
