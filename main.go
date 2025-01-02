@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io"
 	"os"
@@ -10,14 +11,26 @@ import (
 
 const name = "mtimedir"
 
+var verbose bool
+
 func main() {
-	args := os.Args[1:]
+	fs := flag.NewFlagSet(name, flag.ContinueOnError)
+	fs.BoolVar(&verbose, "verbose", false, "enable verbose output")
+	if err := fs.Parse(os.Args[1:]); err != nil {
+		if err == flag.ErrHelp {
+			return
+		}
+		os.Exit(1)
+	}
+	args := fs.Args()
 	if len(args) == 0 {
 		args = []string{"."}
 	}
 	for _, arg := range args {
 		if _, err := run(arg); err != nil {
-			fmt.Fprintf(os.Stderr, "%s: %s\n", name, err)
+			if verbose {
+				fmt.Fprintf(os.Stderr, "%s: %s\n", name, err)
+			}
 			os.Exit(1)
 		}
 	}
@@ -59,9 +72,13 @@ func run(dir string) (*time.Time, error) {
 		}
 	}
 	if !maxTime.IsZero() && stat.ModTime().Unix() != maxTime.Unix() {
-		fmt.Printf("touching %s (<< %s): %s (<= %s)\n", dir, maxTimeFile, maxTime, stat.ModTime())
+		if verbose {
+			fmt.Printf("touching %s (<< %s): %s (<= %s)\n", dir, maxTimeFile, maxTime, stat.ModTime())
+		}
 		if err := os.Chtimes(dir, maxTime, maxTime); err != nil {
-			fmt.Fprintf(os.Stderr, "skipping: %s\n", err)
+			if verbose {
+				fmt.Printf("skipping: %s\n", err)
+			}
 		}
 	}
 	return &maxTime, nil
