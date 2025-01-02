@@ -1,8 +1,5 @@
-GOBIN ?= $(shell go env GOPATH)/bin
-export GO111MODULE=on
-
 .PHONY: all
-all: clean build
+all: build
 
 .PHONY: build
 build:
@@ -10,19 +7,11 @@ build:
 
 .PHONY: install
 install:
-	go install ./...
-
-.PHONY: test
-test: build
-	go test -v ./...
+	go install .
 
 .PHONY: lint
-lint: $(GOBIN)/golint
+lint:
 	go vet ./...
-	golint -set_exit_status ./...
-
-$(GOBIN)/golint:
-	cd && go get golang.org/x/lint/golint
 
 .PHONY: clean
 clean:
